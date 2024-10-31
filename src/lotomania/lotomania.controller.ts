@@ -4,20 +4,20 @@ import { startNewPuppeteerBrowserPage } from "../config/puppeteer";
 import { startBot } from "./start-bot";
 
 export default class LotomaniaController {
-    static async start(req: Request, res: Response) {
-        try {
-            let { browser, page }: { browser: Browser; page: Page } = await startNewPuppeteerBrowserPage();
+	static async start(req: Request, res: Response) {
+		try {
+			let { browser, page }: { browser: Browser; page: Page } = await startNewPuppeteerBrowserPage();
 
-            await startBot(page);
+			await startBot(page);
 
-            // browser.close();
+			// browser.close();
 
-            return { success: true };
-        } catch (error: any) {
-            return {
-                success: false,
-                error: error.message,
-            };
-        }
-    }
+			return { success: true };
+		} catch (error: any) {
+			return {
+				success: false,
+				error: error.message,
+			};
+		}
+	}
 }
