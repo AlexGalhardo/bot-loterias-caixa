@@ -1,0 +1,54 @@
+{
+    "name": "loteria.alexgalhardo.com",
+    "type": "module",
+    "scripts": {
+        "start": "npx rimraf dist && npm run build && NODE_NO_WARNINGS=1 node dist/server.cjs",
+        "start:prod": "NODE_NO_WARNINGS=1 node dist/server.cjs",
+        "dev": "NODE_NO_WARNINGS=1 tsx watch src/server.ts",
+        "prepare": "npx husky",
+        "format:prettier": "npx prettier --write \"src/**/*.ts\"",
+        "build": "tsup",
+        "lint": "biome check src/ --fix --unsafe",
+        "format": "biome format src/ --fix"
+    },
+    "dependencies": {
+        "cors": "^2.8.5",
+        "cpf-cnpj-validator": "1.0.3",
+        "dayjs": "1.11.13",
+        "dotenv": "^16.4.5",
+        "express": "^4.21.1",
+        "puppeteer": "^23.6.1",
+        "puppeteer-extra": "^3.3.6",
+        "puppeteer-extra-plugin-recaptcha": "^3.6.8",
+        "puppeteer-extra-plugin-stealth": "^2.11.2",
+        "rimraf": "6.0.1",
+        "zod": "3.23.8"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "1.9.4",
+        "@types/cors": "2.8.17",
+        "@types/express": "4.17.21",
+        "@types/node": "22.8.4",
+        "husky": "^9.1.6",
+        "prettier": "^3.3.3",
+        "tsup": "8.3.5",
+        "tsx": "4.19.2",
+        "typescript": "5.6.3"
+    },
+    "lint-staged": {
+        "*.{js,ts,cjs,mjs,d.cts,d.mts,json,jsonc}": [
+            "biome check --apply --no-errors-on-unmatched"
+        ]
+    },
+    "tsup": {
+        "entry": [
+            "src"
+        ],
+        "format": [
+            "cjs"
+        ],
+        "splitting": false,
+        "sourcemap": true,
+        "clean": true
+    }
+}
