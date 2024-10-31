@@ -29,7 +29,7 @@ class TelegramLogger {
 
 	private log(logType: string, message: string) {
 		if (ENABLE_TELEGRAM_LOGS) {
-			const messageToSend = `${logType}\n ${message} \n\n <b>Criado em:</b> ${DateTime.getNow()}`;
+			const messageToSend = `${logType} \n\n<b>Criado em:</b> ${DateTime.getNow()} ${message}`;
 
 			const urlParams = encodeURI(`chat_id=${this.channelId}&text=${messageToSend}&parse_mode=HTML`);
 

@@ -1,6 +1,27 @@
 import "dotenv/config";
 import { Page } from "puppeteer";
 import TelegramLog from "../config/telegram-logger.config";
+import { randomUUID } from "crypto";
+import DateTime from "@/utils/date-time.util";
+import { readFileSync, writeFileSync } from "node:fs";
+
+interface Played {
+    id: string;
+    created_at: string;
+    concurso: any;
+    pix: any;
+    total: any;
+    played: any[];
+}
+
+const readJsonFile = (filePath: string): Played[] => {
+    const data = readFileSync(filePath, "utf-8");
+    return JSON.parse(data) as Played[];
+};
+
+const writeJsonFile = (filePath: string, data: Played[]): void => {
+    writeFileSync(filePath, JSON.stringify(data, null, 2));
+};
 
 export async function startBot(page: Page) {
     console.log(`\n\nComeçando BOT Loteria Galhardo...\n\n`);
@@ -148,10 +169,11 @@ export async function startBot(page: Page) {
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     let gamesToMade = 0;
+    const HOW_MUCH_GAMES_TO_PLAY = 7;
 
     console.log("Passo 13 -> Criando os 7 jogos de R$ 3,00 cada um...");
 
-    while (gamesToMade < 7) {
+    while (gamesToMade < HOW_MUCH_GAMES_TO_PLAY) {
         try {
             await page.waitForSelector("#completeojogo", { visible: true });
             await page.click("#completeojogo");
@@ -257,18 +279,81 @@ export async function startBot(page: Page) {
         throw new Error(error.message);
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    let games = [];
+    let [game1, game2, game3, game4, game5, game6, game7] = [[], [], [], [], [], [], []];
+
+    console.log(`Passo 21 -> Copiando os 50 números de cada um dos ${HOW_MUCH_GAMES_TO_PLAY} jogos...`);
+
+    try {
+        await page.waitForSelector(".content-volantes", { timeout: 30000 });
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        games = await page.evaluate(() => {
+            const allNumbers = Array.from(document.querySelectorAll(".volante.lotomania span.margemVolante")).map(
+                (span) => parseInt(span.textContent.trim(), 10),
+            );
+
+            // Split numbers into separate arrays, each with 50 elements
+            const gamesSplit = [];
+            for (let i = 0; i < 7; i++) {
+                const start = i * 50;
+                gamesSplit.push(allNumbers.slice(start, start + 50));
+            }
+
+            // Log the separated numbers
+            console.log("Games extracted: ", gamesSplit);
+            return gamesSplit;
+        });
+
+        // Destructure the games array into separate variables for each game
+        [game1, game2, game3, game4, game5, game6, game7] = games;
+        console.log(`Passo 21 -> Copiou os 50 números de cada um dos ${HOW_MUCH_GAMES_TO_PLAY} jogos!\n\n`);
+        console.log({ game1, game2, game3, game4, game5, game6, game7 });
+        console.log("\n\n");
+    } catch (error: any) {
+        console.log("ERRO: Passo 21 ao copiar os 50 números de cada um dos 7 jogos -> ", error.message);
+        throw new Error(error.message);
+    }
 
     try {
         await page.waitForSelector("#codigoPix", { visible: true });
 
-        const codigoPixValue = await page.$eval("#codigoPix", (input) => (input as HTMLInputElement).value);
-
-        TelegramLog.info(
-            `\n\nPagar Novo Jogo Lotomania!\n\nPIX: ${codigoPixValue}\n\nValor total das apostas: ${valorTotalApostas}\n\n${concursos}`,
+        const codigoPixValue = (await page.$eval("#codigoPix", (input) => (input as HTMLInputElement).value)).replace(
+            /\s+/g,
+            "",
         );
 
-        console.log(`Passo 21 -> Copiou valor codigoPixValue e enviou dados para o Telegram!!!`);
+        console.log(`Passo 22 -> Salvando dados no banco de dados JSON...`);
+
+        const currentData = readJsonFile("./src/repositories/jsons/played.json");
+
+        const newObject: Played = {
+            id: randomUUID(),
+            created_at: DateTime.getNow(),
+            concurso: concursos.replace("Concurso: ", ""),
+            pix: codigoPixValue,
+            total: valorTotalApostas,
+            played: games,
+        };
+
+        currentData.push(newObject);
+
+        writeJsonFile("./src/repositories/jsons/played.json", currentData);
+
+        TelegramLog.info(
+            `\n\nPagar Novo Jogo Lotomania!\n\nPIX: ${codigoPixValue}\n\nValor total das apostas: ${valorTotalApostas}\n\n${concursos}\n\nNúmeros dos jogos:\n\n` +
+            `JOGO 1\n[${game1.join(", ")}]\n\n` +
+            `JOGO 2\n[${game2.join(", ")}]\n\n` +
+            `JOGO 3\n[${game3.join(", ")}]\n\n` +
+            `JOGO 4\n[${game4.join(", ")}]\n\n` +
+            `JOGO 5\n[${game5.join(", ")}]\n\n` +
+            `JOGO 6\n[${game6.join(", ")}]\n\n` +
+            `JOGO 7\n[${game7.join(", ")}]\n\n`,
+        );
+
+        console.log(`Passo 23 -> Copiou valor codigoPixValue e enviou dados para o Telegram!!!`);
     } catch (error: any) {
         console.log("Failed to copy value from 'codigoPix':", error.message);
         throw new Error(error.message);
