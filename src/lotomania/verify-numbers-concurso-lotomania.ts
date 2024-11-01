@@ -4,7 +4,7 @@ import fs from "fs";
 import TelegramLog from "../config/telegram-logger.config";
 import { startNewPuppeteerBrowserPage } from "@/config/puppeteer";
 
-export async function verifyNumbersConcursos() {
+export async function verifyNumbersConcursoLotomania() {
 	const { browser, page }: { browser: Browser; page: Page } = await startNewPuppeteerBrowserPage();
 
 	console.log(`\n\nComeçando Verificação de números da Lotomania...\n\n`);

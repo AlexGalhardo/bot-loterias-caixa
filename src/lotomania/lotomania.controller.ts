@@ -8,7 +8,7 @@ export default class LotomaniaController {
 		try {
 			const { browser, page }: { browser: Browser; page: Page } = await startNewPuppeteerBrowserPage();
 
-			await startBot(page);
+			// await startBot();
 
 			// browser.close();
 

@@ -5,6 +5,7 @@ import { randomUUID } from "crypto";
 import DateTime from "@/utils/date-time.util";
 import { readFileSync, writeFileSync } from "node:fs";
 import { getActivationCodeFromGmail } from "./get-gmail-login-token";
+import { startNewPuppeteerBrowserPage } from "@/config/puppeteer";
 
 interface Played {
 	id: string;
@@ -24,14 +25,16 @@ const writeJsonFile = (filePath: string, data: Played[]): void => {
 	writeFileSync(filePath, JSON.stringify(data, null, 2));
 };
 
-export async function startBot(page: Page) {
+export async function startBot() {
+	const { page }: { page: Page } = await startNewPuppeteerBrowserPage();
+
 	console.log(`\n\nComeçando BOT Loteria Galhardo...\n\n`);
 
 	await new Promise((resolve) => setTimeout(resolve, 1000));
 
 	try {
 		await page.goto(process.env.LOTERIAS_CAIXA_LOTOMANIA_URL, { waitUntil: "networkidle0" });
-		console.log(`Passo 1 -> Entrando na página ${process.env.LOTERIAS_CAIXA_LOTOMANIA_UR}`);
+		console.log(`Passo 1 -> Entrando na página ${process.env.LOTERIAS_CAIXA_LOTOMANIA_URL}`);
 	} catch (error: any) {
 		console.log(error.message);
 		throw new Error(error.message);
