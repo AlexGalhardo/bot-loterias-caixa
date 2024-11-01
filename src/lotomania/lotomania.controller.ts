@@ -6,7 +6,7 @@ import { startBot } from "./start-bot";
 export default class LotomaniaController {
 	static async start(req: Request, res: Response) {
 		try {
-			let { browser, page }: { browser: Browser; page: Page } = await startNewPuppeteerBrowserPage();
+			const { browser, page }: { browser: Browser; page: Page } = await startNewPuppeteerBrowserPage();
 
 			await startBot(page);
 

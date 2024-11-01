@@ -7,7 +7,7 @@ import { verifyNumbersConcursos } from "./lotomania/verify-numbers-concursos";
 
 verifyEnvs();
 
-// verifyNumbersConcursos();
+verifyNumbersConcursos();
 
 const server = express();
 

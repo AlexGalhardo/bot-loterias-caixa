@@ -1,48 +1,105 @@
+import "dotenv/config";
+import { Browser, Page } from "puppeteer";
+import fs from "fs";
+import TelegramLog from "../config/telegram-logger.config";
+import { startNewPuppeteerBrowserPage } from "@/config/puppeteer";
+
 export async function verifyNumbersConcursos() {
-	const concursoNumber = 2694;
-	const numbersWinner = [1, 7, 8, 10, 11, 12, 18, 19, 25, 26, 32, 35, 36, 37, 38, 39, 40, 41, 42, 44];
+	const { browser, page }: { browser: Browser; page: Page } = await startNewPuppeteerBrowserPage();
 
-	const mygames = {
-		game1: [
-			3, 4, 5, 6, 10, 11, 12, 13, 15, 16, 17, 20, 22, 27, 28, 31, 34, 36, 37, 38, 40, 42, 45, 47, 49, 51, 56, 57,
-			59, 60, 61, 64, 65, 66, 68, 73, 75, 76, 77, 78, 83, 84, 86, 89, 90, 93, 96, 97, 98, 0,
-		],
-		game2: [
-			6, 7, 8, 9, 11, 15, 18, 20, 21, 22, 23, 24, 25, 28, 31, 32, 34, 35, 36, 37, 38, 40, 41, 43, 44, 45, 47, 53,
-			55, 59, 60, 61, 62, 63, 64, 71, 73, 74, 75, 77, 78, 79, 80, 81, 83, 87, 92, 94, 96, 98,
-		],
-		game3: [
-			3, 7, 10, 11, 12, 16, 17, 18, 19, 20, 21, 24, 26, 28, 34, 36, 38, 41, 43, 45, 46, 47, 48, 50, 51, 54, 56,
-			57, 59, 60, 61, 62, 65, 66, 67, 68, 73, 74, 77, 78, 82, 83, 84, 85, 88, 89, 91, 93, 95, 96,
-		],
-		game4: [
-			4, 5, 6, 7, 11, 12, 13, 14, 16, 17, 18, 19, 20, 25, 26, 27, 28, 30, 31, 34, 35, 36, 40, 42, 43, 45, 48, 49,
-			50, 51, 53, 54, 56, 60, 62, 63, 64, 65, 66, 69, 72, 73, 79, 80, 81, 82, 87, 92, 93, 96,
-		],
-		game5: [
-			2, 4, 8, 11, 12, 13, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 30, 31, 33, 37, 38, 40, 42, 44, 45, 47, 49, 50,
-			51, 59, 60, 63, 66, 67, 68, 70, 72, 73, 74, 75, 76, 79, 83, 85, 87, 88, 90, 92, 93, 97,
-		],
-		game6: [
-			1, 7, 8, 10, 11, 12, 18, 19, 25, 26, 32, 35, 36, 37, 38, 39, 40, 41, 42, 44, 46, 47, 49, 52, 53, 55, 56, 58,
-			59, 61, 63, 66, 68, 70, 71, 72, 73, 76, 77, 78, 79, 82, 84, 85, 86, 90, 91, 92, 96, 97,
-		],
-		game7: [
-			2, 4, 6, 7, 9, 10, 11, 12, 15, 19, 26, 27, 29, 30, 31, 35, 37, 39, 41, 45, 46, 47, 48, 52, 53, 56, 57, 58,
-			59, 60, 64, 69, 71, 72, 73, 75, 78, 81, 82, 84, 86, 87, 88, 89, 90, 91, 92, 94, 98, 99,
-		],
-	};
+	console.log(`\n\nComeçando Verificação de números da Lotomania...\n\n`);
 
-	setInterval(() => {
-		console.log(`\n\nComeçou verificar números do concurso ${concursoNumber}...`);
+	await new Promise((resolve) => setTimeout(resolve, 1000));
 
-		for (const [gameName, numbers] of Object.entries(mygames)) {
-			const matchingNumbers = numbers.filter((num) => numbersWinner.includes(num));
-			if (matchingNumbers.length >= 16) {
-				console.log(
-					`\n\nVocê acertou ${matchingNumbers.length} números do concurso ${concursoNumber} no jogo ${gameName} que você fez!`,
-				);
-			}
+	try {
+		await page.goto(process.env.GOOGLE_SEARCH_LOTOMANIA_NUMBERS_URL, { waitUntil: "networkidle0" });
+		console.log(`Passo 1 -> Entrando na página ${process.env.GOOGLE_SEARCH_LOTOMANIA_NUMBERS_URL}`);
+	} catch (error: any) {
+		console.log(error.message);
+		throw new Error(error.message);
+	}
+
+	await new Promise((resolve) => setTimeout(resolve, 2000));
+
+	let lotomaniaWinnerNumbers = [];
+	let accumulatedValue = null;
+	let concurso = null;
+
+	try {
+		await page.waitForSelector(".Z30kQd", { timeout: 30000 });
+		lotomaniaWinnerNumbers = (
+			await page.evaluate(() => {
+				return Array.from(document.querySelectorAll(".Z30kQd .zSMazd")).map((span) => span.textContent.trim());
+			})
+		).map((num) => parseInt(num, 10));
+		// console.log("lotomaniaWinnerNumbers: ", lotomaniaWinnerNumbers);
+	} catch (error: any) {
+		console.log(error.message);
+		throw new Error(error.message);
+	}
+
+	try {
+		await page.waitForSelector(".br1ue", { timeout: 30000 });
+		accumulatedValue = await page.evaluate(() => {
+			const valueElement = document.querySelector(".br1ue");
+			return valueElement ? valueElement.textContent.trim() : null;
+		});
+		// console.log("accumulatedValue -> ", accumulatedValue);
+	} catch (error: any) {
+		console.log(error.message);
+		throw new Error(error.message);
+	}
+
+	try {
+		await page.waitForSelector(".qLLird", { timeout: 30000 });
+		concurso = await page.evaluate(() => {
+			const infoElement = document.querySelector(".qLLird span");
+			return infoElement ? infoElement.textContent.trim() : null;
+		});
+		// console.log("concurso -> ", concurso);
+	} catch (error: any) {
+		console.log(error.message);
+		throw new Error(error.message);
+	}
+
+	let playedGames;
+
+	try {
+		const data = fs.readFileSync("./src/repositories/jsons/played.json", "utf-8");
+		playedGames = JSON.parse(data);
+	} catch (error: any) {
+		console.log(error.message);
+		throw new Error(error.message);
+	}
+
+	console.log(`\n\nPasso 2 -> Verificando números sorteados do concurso: ${concurso.match(/\d+/)[0]}`);
+
+	const game = playedGames.find((game) => game.concurso === concurso.match(/\d+/)[0]);
+
+	if (!game) return console.log(`Nenhum jogo jogado para o ${concurso.match(/\d+/)[0]}`);
+
+	game.played.forEach((arrayNumbersPlayed, index) => {
+		const matchingNumbers = arrayNumbersPlayed.filter((num) => lotomaniaWinnerNumbers.includes(num));
+		if (matchingNumbers.length >= 16) {
+			console.log(
+				`\n\n---------- Resultados LOTOMANIA ----------`,
+				`\n\n${concurso}`,
+				`\n\nValor acumulado: ${accumulatedValue}`,
+				`\n\nVocê acertou ${matchingNumbers.length} números!`,
+				`\n\nNúmeros sorteados: [${lotomaniaWinnerNumbers}]`,
+				`\n\nNúmeros que você acertou: [${matchingNumbers}]`,
+				`\n\nJogo com os 50 números que você acertou ${matchingNumbers.length} números: \n[${arrayNumbersPlayed}]`,
+			);
+
+			TelegramLog.info(
+				`\n\n---------- Resultados LOTOMANIA ----------` +
+					`\n\n${concurso}` +
+					`\n\nValor acumulado: ${accumulatedValue}` +
+					`\n\nVocê acertou ${matchingNumbers.length} números!` +
+					`\n\nNúmeros sorteados: [${lotomaniaWinnerNumbers.join(", ")}]` +
+					`\n\nNúmeros que você acertou: [${matchingNumbers.join(", ")}]` +
+					`\n\nJogo com os 50 números em que você acertou ${matchingNumbers.length} números: \n[${arrayNumbersPlayed}]`,
+			);
 		}
-	}, 10000);
+	});
 }

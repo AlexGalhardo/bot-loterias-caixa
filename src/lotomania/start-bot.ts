@@ -4,6 +4,7 @@ import TelegramLog from "../config/telegram-logger.config";
 import { randomUUID } from "crypto";
 import DateTime from "@/utils/date-time.util";
 import { readFileSync, writeFileSync } from "node:fs";
+import { getActivationCodeFromGmail } from "./get-gmail-login-token";
 
 interface Played {
 	id: string;
@@ -29,9 +30,8 @@ export async function startBot(page: Page) {
 	await new Promise((resolve) => setTimeout(resolve, 1000));
 
 	try {
-		await page.goto(process.env.LOTERIAS_CAIXA_LOTOMANIA_URL, { waitUntil: "networkidle0" }); // 'domcontentloaded', networkidle2, networkidle0
-		// await page.goto('https://www.loteriasonline.caixa.gov.br/silce-web/#/home')
-		console.log("Passo 1 -> entrando na página");
+		await page.goto(process.env.LOTERIAS_CAIXA_LOTOMANIA_URL, { waitUntil: "networkidle0" });
+		console.log(`Passo 1 -> Entrando na página ${process.env.LOTERIAS_CAIXA_LOTOMANIA_UR}`);
 	} catch (error: any) {
 		console.log(error.message);
 		throw new Error(error.message);
@@ -42,7 +42,7 @@ export async function startBot(page: Page) {
 	try {
 		await page.waitForSelector(".linkAposta a", { visible: true });
 		await page.click(".linkAposta a");
-		console.log("Passo 2 -> clicando no link aposta");
+		console.log("Passo 2 -> Clicando no link aposta");
 	} catch (error: any) {
 		console.log(error.message);
 		throw new Error(error.message);
@@ -53,7 +53,7 @@ export async function startBot(page: Page) {
 	try {
 		await page.waitForSelector("#botaosim", { visible: true });
 		await page.click("#botaosim");
-		console.log("Passo 3 -> clicando no botão sim");
+		console.log("Passo 3 -> Clicando no botão sim");
 	} catch (error: any) {
 		console.log(error.message);
 		throw new Error(error.message);
@@ -64,7 +64,7 @@ export async function startBot(page: Page) {
 	try {
 		await page.waitForSelector("#btnLogin", { visible: true });
 		await page.click("#btnLogin");
-		console.log("Passo 4 -> clicando botão login");
+		console.log("Passo 4 -> Clicando botão login");
 	} catch (error: any) {
 		console.log(error.message);
 		throw new Error(error.message);
@@ -86,8 +86,7 @@ export async function startBot(page: Page) {
 	try {
 		await page.waitForSelector("#button-submit", { visible: true });
 		await page.click("#button-submit");
-		console.log("Passo 6 -> clicando no botão enviar código para email");
-		TelegramLog.info(`\n\nEnviado código de login das loterias CAIXA no seu email!`);
+		console.log("Passo 6 -> Clicando no botão Próximo");
 	} catch (error: any) {
 		console.log(error.message);
 		throw new Error(error.message);
@@ -98,7 +97,7 @@ export async function startBot(page: Page) {
 	try {
 		await page.waitForSelector("button[name='login']", { visible: true });
 		await page.click("button[name='login']");
-		console.log("Passo 7 -> clicando no botão enviar código para email");
+		console.log("Passo 7 -> Clicando no botão Receber código");
 	} catch (error: any) {
 		console.log(error.message);
 		throw new Error(error.message);
@@ -108,10 +107,13 @@ export async function startBot(page: Page) {
 
 	try {
 		await page.waitForSelector("#codigo", { visible: true });
-		await page.waitForFunction(() => (document.querySelector("#codigo") as HTMLInputElement)?.value.length > 0, {
-			timeout: 0,
-		});
-		console.log("Passo 8 -> esperando colocar manualmente código enviado por email");
+		await new Promise((resolve) => setTimeout(resolve, 5000));
+		const activationCode = await getActivationCodeFromGmail();
+		TelegramLog.info(
+			`\n\nEnviado código de login das loterias CAIXA no seu email!\n\nO código de ativação inserido foi: ${activationCode}`,
+		);
+		await page.type("#codigo", activationCode);
+		console.log(`Passo 8 -> Inserindo código ${activationCode} enviado por email...`);
 	} catch (error: any) {
 		console.log(error.message);
 		throw new Error(error.message);
@@ -122,7 +124,7 @@ export async function startBot(page: Page) {
 	try {
 		await page.waitForSelector("button[name='login'][onclick='return validDV()']", { visible: true });
 		await page.click("button[name='login'][onclick='return validDV()']");
-		console.log("Passo 9 -> clicando no butão login");
+		console.log("Passo 9 -> Clicando no butão login");
 	} catch (error: any) {
 		console.log(error.message);
 		throw new Error(error.message);
@@ -133,7 +135,7 @@ export async function startBot(page: Page) {
 	try {
 		await page.waitForSelector("#password", { visible: true });
 		await page.type("#password", process.env.PASSWORD);
-		console.log("Passo 10 -> inserindo senha");
+		console.log("Passo 10 -> Inserindo senha");
 	} catch (error: any) {
 		console.log(error.message);
 		throw new Error(error.message);
@@ -149,7 +151,7 @@ export async function startBot(page: Page) {
 			);
 			if (button) (button as HTMLElement).click();
 		});
-		console.log("Passo 11 -> clicando no botão Entrar");
+		console.log("Passo 11 -> Clicando no botão Entrar");
 	} catch (error: any) {
 		console.log(error.message);
 		throw new Error(error.message);
@@ -160,7 +162,7 @@ export async function startBot(page: Page) {
 	try {
 		await page.waitForSelector("li .data-jogo-menu-lotomania", { visible: true });
 		await page.click("li .data-jogo-menu-lotomania");
-		console.log("Passo 12 -> clicando no botão Lotomania");
+		console.log("Passo 12 -> Clicando no botão Lotomania");
 	} catch (error: any) {
 		console.log(error.message);
 		throw new Error(error.message);
@@ -295,19 +297,16 @@ export async function startBot(page: Page) {
 				(span) => parseInt(span.textContent.trim(), 10),
 			);
 
-			// Split numbers into separate arrays, each with 50 elements
 			const gamesSplit = [];
 			for (let i = 0; i < 7; i++) {
 				const start = i * 50;
 				gamesSplit.push(allNumbers.slice(start, start + 50));
 			}
 
-			// Log the separated numbers
 			console.log("Games extracted: ", gamesSplit);
 			return gamesSplit;
 		});
 
-		// Destructure the games array into separate variables for each game
 		[game1, game2, game3, game4, game5, game6, game7] = games;
 		console.log(`Passo 21 -> Copiou os 50 números de cada um dos ${HOW_MUCH_GAMES_TO_PLAY} jogos!\n\n`);
 		console.log({ game1, game2, game3, game4, game5, game6, game7 });
