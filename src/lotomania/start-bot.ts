@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { Page } from "puppeteer";
+import { Browser, Page } from "puppeteer";
 import TelegramLog from "../config/telegram-logger.config";
 import { randomUUID } from "crypto";
 import DateTime from "@/utils/date-time.util";
@@ -25,9 +25,9 @@ const writeJsonFile = (filePath: string, data: Played[]): void => {
 	writeFileSync(filePath, JSON.stringify(data, null, 2));
 };
 
-export async function startBot() {
+export async function startBot(): Promise<boolean> {
 	try {
-		const { page }: { page: Page } = await startNewPuppeteerBrowserPage();
+		const { browser, page }: { browser: Browser; page: Page } = await startNewPuppeteerBrowserPage();
 
 		console.log(`\n\nComeçando BOT Loteria Galhardo...\n\n`);
 
@@ -114,11 +114,11 @@ export async function startBot() {
 
 		await new Promise((resolve) => setTimeout(resolve, 2000));
 
-		await page.waitForSelector("#adopt-accept-all-button", { timeout: 5000 });
-		await page.click("#adopt-accept-all-button");
-		console.log("Step 12.1 -> Aceitando o cookie");
+		// await page.waitForSelector("#adopt-accept-all-button", { timeout: 10000 });
+		// await page.click("#adopt-accept-all-button");
+		// console.log("Step 12.1 -> Aceitando o cookie");
 
-		await new Promise((resolve) => setTimeout(resolve, 3000));
+		await new Promise((resolve) => setTimeout(resolve, 2000));
 
 		let gamesToMade = 0;
 		const HOW_MUCH_GAMES_TO_PLAY = 7;
@@ -126,23 +126,13 @@ export async function startBot() {
 		console.log("Passo 13 -> Criando os 7 jogos de R$ 3,00 cada um...");
 
 		while (gamesToMade < HOW_MUCH_GAMES_TO_PLAY) {
-			try {
-				await page.waitForSelector("#completeojogo", { visible: true });
-				await page.click("#completeojogo");
-			} catch (error: any) {
-				console.log("Failed to click 'Complete o Jogo' button:", error.message);
-				throw new Error(error.message);
-			}
+			await page.waitForSelector("#completeojogo", { visible: true });
+			await page.click("#completeojogo");
 
 			await new Promise((resolve) => setTimeout(resolve, 2000));
 
-			try {
-				await page.waitForSelector("#colocarnocarrinho", { visible: true });
-				await page.click("#colocarnocarrinho");
-			} catch (error: any) {
-				console.log("Failed to click 'Colocar no Carrinho' button:", error.message);
-				throw new Error(error.message);
-			}
+			await page.waitForSelector("#colocarnocarrinho", { visible: true });
+			await page.click("#colocarnocarrinho");
 
 			gamesToMade++;
 			console.log(`Passo 13 -> Criou jogo ${gamesToMade}...`);
@@ -151,25 +141,15 @@ export async function startBot() {
 
 		await new Promise((resolve) => setTimeout(resolve, 2000));
 
-		try {
-			await page.waitForSelector("#irparapagamento", { visible: true });
-			await page.click("#irparapagamento");
-			console.log(`Passo 14 -> Clicou no button Ir para pagamento`);
-		} catch (error: any) {
-			console.log("Failed to click 'Ir para pagamento' button:", error.message);
-			throw new Error(error.message);
-		}
+		await page.waitForSelector("#irparapagamento", { visible: true });
+		await page.click("#irparapagamento");
+		console.log(`Passo 14 -> Clicou no button Ir para pagamento`);
 
 		await new Promise((resolve) => setTimeout(resolve, 2000));
 
-		try {
-			await page.waitForSelector("#confirma", { visible: true });
-			await page.click("#confirma");
-			console.log(`Passo 15 -> Clicou no button do modal Confirmar`);
-		} catch (error: any) {
-			console.log("Failed to click 'Confirmar' button:", error.message);
-			throw new Error(error.message);
-		}
+		await page.waitForSelector("#confirma", { visible: true });
+		await page.click("#confirma");
+		console.log(`Passo 15 -> Clicou no button do modal Confirmar`);
 
 		await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -274,8 +254,17 @@ export async function startBot() {
 		console.log(`Passo 23 -> Copiou valor codigoPixValue e enviou dados para o Telegram!!!`);
 
 		console.log(`\n\nBOT Loteria Galhardo Finalizado!\n\n`);
+
+		browser.close();
+
+		return true;
 	} catch (error: any) {
 		console.log(error.message);
-		TelegramLog.error("`\n\nQuebrou algo no BOT Lotomanaia Galhardo !!!\n\n" + `Error: ${error.message}`);
+		TelegramLog.error(
+			"\n\nQuebrou algo no BOT Lotomanaia Galhardo !!!\n\n" +
+				"\n\nNa função startBot()\n\n" +
+				`Error: ${String(error.message)}`,
+		);
+		return false;
 	}
 }

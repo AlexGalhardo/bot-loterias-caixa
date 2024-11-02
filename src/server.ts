@@ -15,7 +15,7 @@ const isTimeToExecute = (days: number[], envHour: string, envMinute: string): bo
 	return days.includes(day) && now.getHours() === Number(envHour) && now.getMinutes() === Number(envMinute);
 };
 
-const scheduleStartBot = () => {
+const scheduleStartBot = async () => {
 	console.log(`...Verificando scheduleStartBot at ${new Date()}`);
 	const daysToStartBot = [
 		Number(process.env.START_BOT_FIRST_WEEK_DATE),
@@ -24,19 +24,18 @@ const scheduleStartBot = () => {
 	];
 
 	if (isTimeToExecute(daysToStartBot, process.env.START_BOT_HOUR, process.env.START_BOT_MINUTE)) {
-		TelegramLog.info(
-			`\n\n...Começou executar função para criar 7 jogos na LOTOMANIA as: ${process.env.START_BOT_HOUR} horas e ${process.env.START_BOT_MINUTE} minutos!`,
-		);
+		TelegramLog.info(`\n\nComeçou executar função para criar 7 jogos na LOTOMANIA...`);
 
-		console.log(
-			`\n\n...Começou executar função para criar 7 jogos na LOTOMANIA as: ${process.env.START_BOT_HOUR} horas e ${process.env.START_BOT_MINUTE} minutos!`,
-		);
+		console.log(`\n\nComeçou executar função para criar 7 jogos na LOTOMANIA...`);
 
-		startBot();
+		let success = false;
+		while (success !== true) {
+			success = await startBot();
+		}
 	}
 };
 
-const scheduleVerifyNumbersLotomania = () => {
+const scheduleVerifyNumbersLotomania = async () => {
 	const daysToVerifyLotomania = [
 		Number(process.env.VERIFY_LOTOMANIA_FIRST_WEEK_DATE),
 		Number(process.env.VERIFY_LOTOMANIA_SECOND_WEEK_DATE),
@@ -46,15 +45,14 @@ const scheduleVerifyNumbersLotomania = () => {
 	if (
 		isTimeToExecute(daysToVerifyLotomania, process.env.VERIFY_LOTOMANIA_HOUR, process.env.VERIFY_LOTOMANIA_MINUTE)
 	) {
-		TelegramLog.info(
-			`\n\n...Começou executar função para verificar números sorteados da LOTOMANIA as: ${process.env.VERIFY_LOTOMANIA_HOUR} horas e ${process.env.VERIFY_LOTOMANIA_MINUTE} minutos!`,
-		);
+		TelegramLog.info(`\n\nComeçou executar função para verificar os números sorteados da LOTOMANIA...`);
 
-		console.log(
-			`\n\n...Começou executar função para verificar números sorteados da LOTOMANIA as: ${process.env.VERIFY_LOTOMANIA_HOUR} horas e ${process.env.VERIFY_LOTOMANIA_MINUTE} minutos!`,
-		);
+		console.log(`\n\nComeçou executar função para verificar os números sorteados da LOTOMANIA...`);
 
-		verifyNumbersConcursoLotomania();
+		let success = false;
+		while (success !== true) {
+			success = await verifyNumbersConcursoLotomania();
+		}
 	}
 };
 
