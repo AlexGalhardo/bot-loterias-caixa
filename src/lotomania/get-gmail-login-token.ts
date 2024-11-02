@@ -23,19 +23,15 @@ async function authorize() {
 		// 	oAuth2Client.setCredentials(JSON.parse(String(token)));
 		// 	resolve(oAuth2Client);
 		// });
-		oAuth2Client.setCredentials(
-			JSON.parse(
-				String({
-					access_token:
-						"ya29.a0AeDClZCa8xHlE6wMiGDIvCl48OsX6JEKOzmvrCT1OdjR71klwfEUvAwS-C9h8P90CWvfoY7rt4HP76cics0GEd5c6kzq3ASJ5IO8VcO1nKq_f1WGc3nnNLk9TIR9PXzGZKBcX989Q700UXYO3NchQotmTGmNx8Avgc7a9gxzaCgYKAekSARMSFQHGX2MiZdgvcHeUVE7Kl9vvh6QZww0175",
-					refresh_token:
-						"1//0h-lD0Tod24bcCgYIARAAGBESNwF-L9IrYWNAxrQwYkQtxL659crdM0JEn9VtI3E7rX2tNcgS_AUjUsZEFQK35899yue9rhl9AfE",
-					scope: "https://www.googleapis.com/auth/gmail.readonly",
-					token_type: "Bearer",
-					expiry_date: 1730464522229,
-				}),
-			),
-		);
+		oAuth2Client.setCredentials({
+			access_token:
+				"ya29.a0AeDClZCa8xHlE6wMiGDIvCl48OsX6JEKOzmvrCT1OdjR71klwfEUvAwS-C9h8P90CWvfoY7rt4HP76cics0GEd5c6kzq3ASJ5IO8VcO1nKq_f1WGc3nnNLk9TIR9PXzGZKBcX989Q700UXYO3NchQotmTGmNx8Avgc7a9gxzaCgYKAekSARMSFQHGX2MiZdgvcHeUVE7Kl9vvh6QZww0175",
+			refresh_token:
+				"1//0h-lD0Tod24bcCgYIARAAGBESNwF-L9IrYWNAxrQwYkQtxL659crdM0JEn9VtI3E7rX2tNcgS_AUjUsZEFQK35899yue9rhl9AfE",
+			scope: "https://www.googleapis.com/auth/gmail.readonly",
+			token_type: "Bearer",
+			expiry_date: 1730464522229,
+		});
 		resolve(oAuth2Client);
 	});
 }
