@@ -1,40 +1,64 @@
 FROM node:20.11.1-slim AS builder
 
+# Install necessary packages for Chromium
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    fonts-liberation \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdbus-glib-1-2 \
+    libdrm2 \
+    libgbm1 \
+    libgtk-3-0 \
+    libnspr4 \
+    libnss3 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    wget \
+    xauth \
+    xvfb \
+    chromium && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /usr/www/bot-loteria
 
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    BROWSER_PATH=/usr/bin/google-chrome-stable
+# Set up environment variables to inherit values from the host
+ENV SERVER_PORT \
+    NODE_ENV \
+    LOTERIAS_CAIXA_LOTOMANIA_URL \
+    GOOGLE_SEARCH_LOTOMANIA_NUMBERS_URL \
+    HEADLESS \
+    CPF \
+    PASSWORD \
+    LOCALE_DATE_TIME \
+    BROWSER_PATH="/usr/bin/chromium" \
+    ENABLE_TELEGRAM_LOGS \
+    TELEGRAM_BOT_HTTP_TOKEN \
+    TELEGRAM_BOT_CHANNEL_ID \
+    GOOGLE_CLIENT_ID \
+    GOOGLE_CLIENT_SECRET \
+    START_BOT_FIRST_WEEK_DATE \
+    START_BOT_SECOND_WEEK_DATE \
+    START_BOT_THIRD_WEEK_DATE \
+    START_BOT_HOUR \
+    START_BOT_MINUTE \
+    VERIFY_LOTOMANIA_FIRST_WEEK_DATE \
+    VERIFY_LOTOMANIA_SECOND_WEEK_DATE \
+    VERIFY_LOTOMANIA_THIRD_WEEK_DATE \
+    VERIFY_LOTOMANIA_HOUR \
+    VERIFY_LOTOMANIA_MINUTE
 
 COPY package.json ./
-
 RUN npm install
 
 COPY . .
 
 RUN npm run build
 
-FROM node:20.11.1-slim AS production
-
-RUN apt-get update \
-    && apt-get install -y wget gnupg \
-    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/googlechrome-linux-keyring.gpg \
-    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/googlechrome-linux-keyring.gpg] https://dl-ssl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-khmeros fonts-kacst fonts-freefont-ttf libxss1 dbus dbus-x11 \
-      --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/* \
-    && groupadd -r apify && useradd -rm -g apify -G audio,video apify
-
-RUN which google-chrome-stable || true
-
-WORKDIR /usr/www/bot-loteria
-
-COPY --from=builder /usr/www/bot-loteria/dist ./dist
-COPY --from=builder /usr/www/bot-loteria/node_modules ./node_modules
-COPY --from=builder /usr/www/bot-loteria/package*.json ./
-
-RUN npm i
-
 EXPOSE 3000
 
-CMD [ "npm", "run", "start:prod"]
+CMD ["npm", "run", "start:prod"]

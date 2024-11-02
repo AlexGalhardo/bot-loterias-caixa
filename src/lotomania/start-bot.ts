@@ -173,6 +173,15 @@ export async function startBot() {
 
 	await new Promise((resolve) => setTimeout(resolve, 2000));
 
+	try {
+		await page.waitForSelector("#adopt-accept-all-button", { timeout: 5000 });
+		await page.click("#adopt-accept-all-button");
+		console.log("Step 12.1 -> Aceitando o cookie");
+	} catch (error: any) {
+		console.log(error.message);
+		// throw new Error(error.message);
+	}
+
 	let gamesToMade = 0;
 	const HOW_MUCH_GAMES_TO_PLAY = 7;
 
