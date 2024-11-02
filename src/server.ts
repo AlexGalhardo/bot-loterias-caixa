@@ -5,6 +5,7 @@ import router from "./routes";
 import verifyEnvs from "./utils/verify-envs.util";
 import { verifyNumbersConcursoLotomania } from "./lotomania/verify-numbers-concurso-lotomania";
 import { startBot } from "./lotomania/start-bot";
+import TelegramLog from "./config/telegram-logger.config";
 
 verifyEnvs();
 
@@ -15,6 +16,7 @@ const isTimeToExecute = (days: number[], envHour: string, envMinute: string): bo
 };
 
 const scheduleStartBot = () => {
+	console.log(`...Verificando scheduleStartBot at ${new Date()}`);
 	const daysToStartBot = [
 		Number(process.env.START_BOT_FIRST_WEEK_DATE),
 		Number(process.env.START_BOT_SECOND_WEEK_DATE),
@@ -22,6 +24,14 @@ const scheduleStartBot = () => {
 	];
 
 	if (isTimeToExecute(daysToStartBot, process.env.START_BOT_HOUR, process.env.START_BOT_MINUTE)) {
+		TelegramLog.info(
+			`\n\n...Começou executar função para criar 7 jogos na LOTOMANIA as: ${process.env.START_BOT_HOUR} horas e ${process.env.START_BOT_MINUTE} minutos!`,
+		);
+
+		console.log(
+			`\n\n...Começou executar função para criar 7 jogos na LOTOMANIA as: ${process.env.START_BOT_HOUR} horas e ${process.env.START_BOT_MINUTE} minutos!`,
+		);
+
 		startBot();
 	}
 };
@@ -36,15 +46,22 @@ const scheduleVerifyNumbersLotomania = () => {
 	if (
 		isTimeToExecute(daysToVerifyLotomania, process.env.VERIFY_LOTOMANIA_HOUR, process.env.VERIFY_LOTOMANIA_MINUTE)
 	) {
+		TelegramLog.info(
+			`\n\n...Começou executar função para verificar números sorteados da LOTOMANIA as: ${process.env.VERIFY_LOTOMANIA_HOUR} horas e ${process.env.VERIFY_LOTOMANIA_MINUTE} minutos!`,
+		);
+
+		console.log(
+			`\n\n...Começou executar função para verificar números sorteados da LOTOMANIA as: ${process.env.VERIFY_LOTOMANIA_HOUR} horas e ${process.env.VERIFY_LOTOMANIA_MINUTE} minutos!`,
+		);
+
 		verifyNumbersConcursoLotomania();
 	}
 };
 
-// Verifique data e hora a cada 1 minuto
 setInterval(scheduleStartBot, 60000);
 setInterval(scheduleVerifyNumbersLotomania, 60000);
 
-startBot();
+// startBot();
 
 const server = express();
 
@@ -59,5 +76,5 @@ server.use((error, req, res, next) => {
 const PORT = Number(process.env.PORT) || 3000;
 
 server.listen(PORT, async () => {
-	console.log(`\n\n...BOT Loteria Galhardo Server running on http://localhost:${PORT}`);
+	console.log(`\n\n...BOT Loteria Galhardo Funcionando!`);
 });
