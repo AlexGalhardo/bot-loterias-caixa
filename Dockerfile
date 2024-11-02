@@ -1,6 +1,5 @@
 FROM node:20.11.1-slim AS builder
 
-# Install necessary packages for Chromium
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -26,7 +25,6 @@ RUN apt-get update && \
 
 WORKDIR /usr/www/bot-loteria
 
-# Set up environment variables to inherit values from the host
 ENV SERVER_PORT \
     NODE_ENV \
     LOTERIAS_CAIXA_LOTOMANIA_URL \
@@ -53,6 +51,7 @@ ENV SERVER_PORT \
     VERIFY_LOTOMANIA_MINUTE
 
 COPY package.json ./
+
 RUN npm install
 
 COPY . .
