@@ -1,5 +1,5 @@
 {
-    "name": "loteria.alexgalhardo.com",
+    "name": "bot-loterias-caixa",
     "type": "module",
     "scripts": {
         "start": "npx rimraf dist && npm run build && NODE_NO_WARNINGS=1 node dist/server.cjs",
