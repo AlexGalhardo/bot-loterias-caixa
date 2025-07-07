@@ -1,33 +1,26 @@
 <h1 align="center">BOT Loteria Galhardo</h1>
 
 ## Introduction
-- Bot para fazer jogos na lotomania
-- Canal telegram: <https://web.telegram.org/a/#7177505675>
+- Bot for playing Brazil CAIXA Lotomania lottery games
 
-## Setup de desenvolvimento local
-
-1. Clone esse repositorio
+## Local Development Setup
+1. Clone this repository
 ```bash
 git clone git@github.com:Teddy-Solucoes/loteria.alexgalhardo.com.git
 ```
-
-2. Entre no repositório
+2. Enter the repository
 ```bash
 cd loteria.alexgalhardo.com/
 ```
-
-3. Crie o arquivo `.env`
+3. Create the `.env` file
 ```bash
 cp .env.example .env
 ```
-
-4. Installar dependencias e o servidor
+4. Install dependencies and run the server
 ```bash
 bun i && bun run dev
 ```
+5. If everything is ok, the server will be running at: <https://localhost:3000>
 
-5. Se tudo estiver ok, o servidor vai estar rodando em: <https://localhost:3000>
-
-## Documentação
-
-- Leia e adicione informações úteis de documentação sobre esse código dentro da pasta [docs/](docs/)
+## Documentation
+- Read and add useful documentation information about this code within the [docs/](docs/) folder
